@@ -41,5 +41,71 @@
  *   // => { name: "Priya", totalMarks: 63, percentage: 31.5, grade: "F", ... }
  */
 export function generateReportCard(student) {
-  // Your code here
+  if (!student || typeof student !== 'object' || !student.name || !student.marks) {
+    return null;
 }
+
+const marksEntries = Object.entries(student.marks);
+
+if (marksEntries.length === 0) {
+    return null;
+}
+
+for (const [subject, score] of marksEntries) {
+    if (typeof score !== 'number' || score < 0 || score > 100) {
+        return null;
+    }
+}
+
+  let rtn = {
+    name: student.name,
+  }
+
+  const marks = Object.values(student.marks)
+  
+  rtn.totalMarks = marks.reduce((total, marks) => {
+    return total + marks
+  }, 0)
+
+  let per = ((rtn.totalMarks) / (marks.length * 100)) * 100
+  rtn.percentage = Math.round(per *100) / 100
+
+  if (rtn.percentage >= 90) {
+    rtn.grade = 'A+'
+  } else if (rtn.percentage >= 80) {
+    rtn.grade = "A"
+  } else if (rtn.percentage >= 70) {
+    rtn.grade = "B"
+  } else if (rtn.percentage >= 60) {
+    rtn.grade = "C"
+  } else if (rtn.percentage >= 40) {
+    rtn.grade = "D"
+  } else {
+    rtn.grade = "F"
+  }
+
+  let sub = Object.entries(student.marks)
+
+  rtn.passedSubjects = sub.filter(item => item[1] >= 40).map(sub => sub[0])
+  rtn.failedSubjects = sub.filter(item => item[1] < 40).map(sub => sub[0])
+  
+  const highMarks = sub.reduce((prev, curr) => {
+    return prev[1] > curr[1] ? prev: curr
+  })
+
+  const lowMarks = sub.reduce((prev, curr) => {
+    return prev[1] < curr[1] ? prev: curr
+  })
+
+
+  
+  rtn.highestSubject = highMarks[0]
+  rtn.lowestSubject = lowMarks[0]
+  
+  rtn.subjectCount = sub.length
+
+  console.log(rtn);
+  return rtn
+}
+
+generateReportCard({ name: "Rahul", marks: { maths: 85, science: 92, english: 78 } })

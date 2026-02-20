@@ -20,6 +20,7 @@
  *     - highestTransaction: the full transaction object with highest amount
  *     - categoryBreakdown: object with category as key and total amount as value
  *       e.g., { food: 1500, travel: 800 } (include both credit and debit)
+ * 
  *     - frequentContact: the "to" field value that appears most often
  *       (if tie, return whichever appears first)
  *     - allAbove100: boolean, true if every valid transaction amount > 100 (use every)
@@ -48,4 +49,57 @@
  */
 export function analyzeUPITransactions(transactions) {
   // Your code here
+  if (!Array.isArray(transactions) || transactions.length === 0) {
+    return null;
+  }
+
+  const validTrans = transactions.filter((item) => item.amount > 0 && (item.type === 'credit' || item.type === 'debit'))
+  if(validTrans.length === 0) {
+    return null
+  }
+
+  let rtn = {}
+
+  rtn.totalCredit = validTrans.reduce((sum, item) => {
+    if (item.type === 'credit') {
+      sum = sum + item.amount
+    }
+
+    return sum
+  }, 0)
+
+  rtn.totalDebit = validTrans.reduce((sum, item) => {
+    if (item.type === 'debit') {
+      sum = sum + item.amount
+    }
+
+    return sum
+  }, 0)
+
+  rtn.netBalance = rtn.totalCredit - rtn.totalDebit
+  rtn.transactionCount = validTrans.length
+  rtn.avgTransaction = Math.round((rtn.totalCredit + rtn.totalDebit) / rtn.transactionCount)
+  rtn.highestTransaction = validTrans.reduce((prev, curr) => {
+    return prev.amount > curr.amount ? prev : curr
+  })
+
+  // Used AI Here
+  rtn.categoryBreakdown = validTrans.reduce((item, curr) => {
+    const {category, amount} = curr
+    item[category] = (item[category]  || 0) + amount
+    return item
+  }, {})
+
+  const categoryFreq = validTrans.reduce((item, curr) => {
+    const {to, feq=1} = curr
+    item[to] = (item[to] || 0) + feq
+    return item
+  }, {})
+  let categoryArr = Object.entries(categoryFreq).sort((a, b) => b[1] - a[1])
+  rtn.frequentContact = categoryArr[0][0]
+
+  rtn.allAbove100 = validTrans.every(item => item.amount > 100)
+  rtn.hasLargeTransaction = validTrans.some(item => item.amount >= 5000)
+
+  return rtn || null
 }
